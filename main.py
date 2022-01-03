@@ -1,5 +1,5 @@
 from flask import Flask
-from flask_restful import Resource, Api, reqparse, abort, fields, marshal_with
+from flask_restful import Resource, Api, reqparse, abort, fields, marshal_with, request
 from flask_mongoengine import MongoEngine
 
 
@@ -15,6 +15,10 @@ app.config['MONGODB_SETTINGS'] = {              # connects to a locally hosted M
 }
 db = MongoEngine()
 db.init_app(app)
+
+
+# simple auth system setup
+X_API_KEYS = set(['m8hd936ro04h9fq1'])
 
 
 # defining the DBZ Character document (data model)
@@ -53,6 +57,9 @@ resource_fields_character = {
 class Character(Resource):
     @marshal_with(resource_fields_character)
     def get(self, _id):
+        if request.headers.get('x-api-key') not in X_API_KEYS:
+            abort(401, message=f'Please provide a valid key at the header "x-api-key"...')
+
         result = CharacterModel.objects(_id=_id).first()
         if not result:
             abort(404, message=f'Could not find character with ID {_id}...')
@@ -61,6 +68,9 @@ class Character(Resource):
 
     @marshal_with(resource_fields_character)
     def post(self, _id):
+        if request.headers.get('x-api-key') not in X_API_KEYS:
+            abort(401, message=f'Please provide a valid key at the header "x-api-key"...')
+
         if CharacterModel.objects(_id=_id).first():
             abort(409, message=f'Character with ID {_id} already taken...')
 
@@ -71,6 +81,9 @@ class Character(Resource):
 
     @marshal_with(resource_fields_character)
     def put(self, _id):
+        if request.headers.get('x-api-key') not in X_API_KEYS:
+            abort(401, message=f'Please provide a valid key at the header "x-api-key"...')
+
         result = CharacterModel.objects(_id=_id).first()
         if not result:
             abort(404, message=f'Could not find character with ID {_id}...')
@@ -88,6 +101,9 @@ class Character(Resource):
 
     @marshal_with(resource_fields_character)
     def delete(self, _id):
+        if request.headers.get('x-api-key') not in X_API_KEYS:
+            abort(401, message=f'Please provide a valid key at the header "x-api-key"...')
+
         result = CharacterModel.objects(_id=_id).first()
         if not result:
             abort(404, message=f'Could not find character with ID {_id}...')
@@ -101,6 +117,9 @@ class Character(Resource):
 class Characters(Resource):
     @marshal_with(resource_fields_character)
     def get(self):
+        if request.headers.get('x-api-key') not in X_API_KEYS:
+            abort(401, message=f'Please provide a valid key at the header "x-api-key"...')
+            
         return [character for character in CharacterModel.objects], 200
 
 
